@@ -29,6 +29,8 @@ class _HomePageState extends State<HomePage> {
         builder: (context,box,_){
           var data = box.values.toList().cast<NotesModel>();
           return ListView.builder(
+            reverse: true,
+            shrinkWrap: true,
             itemCount: box.length,
               itemBuilder: (context,index){
               return Card(
@@ -38,7 +40,29 @@ class _HomePageState extends State<HomePage> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(data[index].title.toString()),
+                      Row(
+                        children: [
+                          Text(data[index].title.toString()),
+                          Spacer(),
+                          InkWell(
+                            onTap: (){
+                              _editeDiolog(data[index], data[index].title.toString(), data[index].Description.toString());
+                            },
+                              child: Icon(Icons.edit)),
+                          SizedBox(
+                            width: 10.0,
+                          ),
+                          InkWell(
+                            onTap: (){
+                              delete(data[index]);
+                              setState(() {
+
+                              });
+                            },
+                              child: Icon(Icons.delete,color: Colors.red,),
+                          ),
+                        ],
+                      ),
                       Text(data[index].Description.toString()),
 
                     ],
@@ -56,6 +80,11 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
+  void delete(NotesModel notesModel)async{
+    await notesModel.delete();
+  }
+
 
   Future <void> _showMyDiolog()async{
     return showDialog(
@@ -112,4 +141,56 @@ class _HomePageState extends State<HomePage> {
           );
         });
   }
+  Future <void> _editeDiolog(NotesModel notesModel,String title,String description)async{
+    _titleController.text = title;
+    _descriptionController.text = description;
+    return showDialog(
+        context: context,
+        builder: (context){
+          return AlertDialog(
+            title: Text('Add Notes'),
+            content: SingleChildScrollView(
+              child: Column(
+                children: [
+                  TextFormField(
+                    controller: _titleController,
+                    decoration: const InputDecoration(
+                      hintText: 'Title',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 30.0,
+                  ),
+                  TextFormField(
+                    controller: _descriptionController,
+                    decoration: const InputDecoration(
+                      hintText: 'Description',
+                      border:  OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                  onPressed: ()async{
+                    notesModel.title = _titleController.text.toString();
+                    notesModel.Description = _descriptionController.text.toString();
+                    notesModel.save();
+                    Navigator.pop(context);
+                  },
+                  child: Text('edit')
+              ),
+              TextButton(
+                  onPressed: (){
+                    Navigator.pop(context);
+                  },
+                  child: Text('Cancel')
+              ),
+            ],
+          );
+        });
+  }
+
 }
